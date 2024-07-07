@@ -17,6 +17,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.api.security.exceptions.notFound.ProductNotFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import jakarta.security.auth.message.AuthException;
@@ -25,9 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
-
-	private static final String UNPROCESSABLE_ENTITY_MESSAGE = "Unprocessable Entity: The request was well-formed but unable to be followed due to semantic errors."; // 422
-	private static final String CONFLICT_MESSAGE = "Conflict: The request could not be completed due to a conflict with the current state of the target resource."; // 409
 
 	@ExceptionHandler({ MethodArgumentTypeMismatchException.class,
 			SizeLimitExceededException.class,
@@ -38,7 +36,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(
 				new ErrorResponse(
 						HttpStatus.UNPROCESSABLE_ENTITY,
-						UNPROCESSABLE_ENTITY_MESSAGE,
+						"Unprocessable Entity: There was an issue processing your request due to invalid data. Please verify the information provided and resubmit.",
 						ex.getLocalizedMessage()),
 				HttpStatus.UNPROCESSABLE_ENTITY);
 	}
@@ -49,7 +47,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		log.error("Error: ", ex);
 		return new ResponseEntity<>(
 				new ErrorResponse(HttpStatus.UNAUTHORIZED,
-						CONFLICT_MESSAGE,
+						"Conflict: Desculpe, há um conflito com o estado atual do recurso. Por favor, atualize e tente sua requisição novamente.",
 						ex.getLocalizedMessage()),
 				HttpStatus.UNAUTHORIZED);
 	}
@@ -100,4 +98,15 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 				errorMessage, errors);
 		return new ResponseEntity<>(errorResponse, headers, status);
 	}
+
+		@ExceptionHandler({ ProductNotFoundException.class })
+	public ResponseEntity<ErrorResponse> handleNotFoundException(
+			RuntimeException ex) {
+		log.error("Error: ", ex);
+		return new ResponseEntity<>(
+				new ErrorResponse(HttpStatus.NOT_FOUND, "Not Found: The requested resource could not be found on the server. Please verify the URL and try again.",
+						ex.getLocalizedMessage()),
+				HttpStatus.NOT_FOUND);
+	}
+
 }
