@@ -3,6 +3,7 @@ package com.api.security.Services;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.api.security.exceptions.notFound.ProductNotFoundException;
@@ -11,6 +12,7 @@ import com.api.security.repositories.ProductRepository;
 
 import jakarta.transaction.Transactional;
 
+@Service
 public class ProductService {
 
     @Autowired
