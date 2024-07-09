@@ -47,13 +47,12 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		log.error("Error: ", ex);
 		return new ResponseEntity<>(
 				new ErrorResponse(HttpStatus.UNAUTHORIZED,
-						"Conflict: Desculpe, há um conflito com o estado atual do recurso. Por favor, atualize e tente sua requisição novamente.",
+						"Conflict: Sorry, there is a conflict with the current state of the resource. Please refresh and try your request again.",
 						ex.getLocalizedMessage()),
 				HttpStatus.UNAUTHORIZED);
 	}
     
-	@SuppressWarnings("null")
-    @Override
+	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
 			org.springframework.http.HttpHeaders headers,
@@ -70,7 +69,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(errorResponse, headers, status);
 	}
 
-	@SuppressWarnings("null")
     @Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(
 			HttpMessageNotReadableException ex, HttpHeaders headers,
@@ -99,7 +97,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(errorResponse, headers, status);
 	}
 
-		@ExceptionHandler({ ProductNotFoundException.class })
+	@ExceptionHandler({ ProductNotFoundException.class })
 	public ResponseEntity<ErrorResponse> handleNotFoundException(
 			RuntimeException ex) {
 		log.error("Error: ", ex);

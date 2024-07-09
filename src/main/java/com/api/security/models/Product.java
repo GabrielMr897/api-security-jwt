@@ -34,6 +34,9 @@ public class Product extends AbstractEntity {
 
     @Column
     private String measurementUnit;
+
+    @Column
+    private String image;
         
 
 }

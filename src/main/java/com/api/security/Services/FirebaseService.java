@@ -47,8 +47,7 @@ public class FirebaseService {
               .setMetadata(map)
               .setContentType(file.getContentType())
               .build();
-      BlobTargetOption option = BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PUBLIC_READ);
-      storage.create(blobInfo, file.getBytes(), option);
+      storage.create(blobInfo, file.getBytes());
       return imageName;
   }
 
