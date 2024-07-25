@@ -1,12 +1,17 @@
 package com.api.security.models;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.api.client.util.DateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,8 +31,8 @@ public abstract class AbstractEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+    @JsonIgnore
+    private Date createdDate = new Date();
 
 }

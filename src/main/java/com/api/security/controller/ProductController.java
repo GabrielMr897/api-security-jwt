@@ -44,7 +44,7 @@ public class ProductController {
     @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PostMapping
-    public ResponseEntity<Object> create(@RequestParam("file") MultipartFile file, @Valid @RequestPart() Product product) throws IOException {
+    public ResponseEntity<Object> create(@RequestParam MultipartFile file, @Valid @RequestPart Product product) throws IOException {
         try {
         Product pr = productService.save(product, file);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(pr.getId()).toUri();
