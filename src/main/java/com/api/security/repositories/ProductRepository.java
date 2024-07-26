@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.api.security.models.Product;
 
+
 public interface ProductRepository extends JpaRepository<Product,UUID> {
 
-    
+    Product findByCode(String code);
+
+    boolean existsByCode(String code);
 }

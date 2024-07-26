@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.api.security.DTO.Product.ProductRequestDTO;
+import com.api.security.DTO.Product.ProductResponseDTO;
+import com.api.security.exceptions.conflict.ProductAlreadyExistsException;
 import com.api.security.exceptions.notFound.ProductNotFoundException;
 import com.api.security.models.Product;
 import com.api.security.repositories.ProductRepository;
@@ -22,13 +25,15 @@ public class ProductService {
     private FirebaseService firebaseService;
     
     @Transactional
-    public Product save(Product pr, MultipartFile file)
-            throws ProductNotFoundException, IOException {
+    public ProductResponseDTO save(ProductRequestDTO pr, MultipartFile file)
+            throws IOException {
         
         String urlFile = "";
-        
+        if (productRepository.existsByCode(pr.getCode())) {
+            throw new ProductAlreadyExistsException("Product with code " + pr.getCode() + " already exists.");
+        }
 
-        if (!file.isEmpty()) {
+        if (file != null && !file.isEmpty()) {
             urlFile = "https://firebasestorage.googleapis.com/v0/b/api-security-23723.appspot.com/o/" + firebaseService.saveFile(file) + "?alt=media";
         }
 
@@ -40,6 +45,6 @@ public class ProductService {
             .measurementUnit(pr.getMeasurementUnit())
             .build();
         product = this.productRepository.save(product);
-        return product;
+        return ProductResponseDTO.fromEntity(product);
     }
 }

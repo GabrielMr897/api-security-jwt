@@ -27,12 +27,12 @@ public class Product extends AbstractEntity {
 
     @Builder.Default
     @Column(name = "is_Blocked", nullable = false, columnDefinition = "boolean default false")
-    private boolean isBlocked = true;
+    private boolean isBlocked = false;
     
-    @Column
+    @Column(nullable = false)
     private BigDecimal value;
 
-    @Column
+    @Column(nullable = false)
     private String measurementUnit;
 
     @Column

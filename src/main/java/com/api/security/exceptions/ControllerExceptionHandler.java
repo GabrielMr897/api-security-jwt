@@ -17,6 +17,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.api.security.exceptions.conflict.ProductAlreadyExistsException;
 import com.api.security.exceptions.notFound.ProductNotFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
@@ -105,6 +106,17 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 				new ErrorResponse(HttpStatus.NOT_FOUND, "Not Found: The requested resource could not be found on the server. Please verify the URL and try again.",
 						ex.getLocalizedMessage()),
 				HttpStatus.NOT_FOUND);
+	}
+
+	@ExceptionHandler({ ProductAlreadyExistsException.class })
+	public ResponseEntity<ErrorResponse> handleConflictException(
+			RuntimeException ex) {
+		log.error("Error: ", ex);
+		return new ResponseEntity<>(
+				new ErrorResponse(HttpStatus.CONFLICT,
+						"Conflict: A product with the specified code already exists.",
+						ex.getLocalizedMessage()),
+				HttpStatus.CONFLICT);
 	}
 
 }
