@@ -3,6 +3,7 @@ package com.api.security.DTO.Product;
 import java.math.BigDecimal;
 
 import com.api.security.models.Product;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.firebase.database.annotations.NotNull;
 
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class ProductResponseDTO {
     private String description;
 
     @NotNull
+    @JsonProperty("blocked")
     private boolean isBlocked = false;
     
     @NotNull
