@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.api.security.exceptions.conflict.ProductAlreadyExistsException;
 import com.api.security.exceptions.notFound.ProductNotFoundException;
+import com.api.security.exceptions.notFound.RoleNotFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import jakarta.security.auth.message.AuthException;
@@ -99,7 +101,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // Handling entity not found exceptions
-    @ExceptionHandler({ ProductNotFoundException.class })
+    @ExceptionHandler({ ProductNotFoundException.class, RoleNotFoundException.class })
     public ResponseEntity<ErrorResponse> handleNotFoundException(
             RuntimeException ex) {
         return new ResponseEntity<>(

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,20 +23,22 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.api.security.DTO.Product.ProductRequestDTO;
 import com.api.security.DTO.Product.ProductResponseDTO;
-import com.api.security.Services.ProductService;
 import com.api.security.repositories.ProductRepository;
+import com.api.security.services.ProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 
 @RestController
 @RequestMapping("/api/product")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Products", description = "Products Test")
 public class ProductController {
     
@@ -55,6 +58,7 @@ public class ProductController {
     @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Object> create(@RequestParam(required = false) @Parameter(description = "Optional file upload") MultipartFile file, @Valid @RequestPart ProductRequestDTO product) throws IOException {
         ProductResponseDTO pr = productService.save(product, file);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(productRepository.findByCode(product.getCode()).getId()).toUri();
@@ -71,6 +75,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ProductResponseDTO>> findAll() {
         List<ProductResponseDTO> products = productService.findAll();
         return ResponseEntity.ok(products);
@@ -85,6 +90,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ProductResponseDTO> getById(@PathVariable UUID id) {
         ProductResponseDTO product = productService.getById(id);
         return ResponseEntity.ok(product);
@@ -99,6 +105,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @GetMapping("/search")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<Page<ProductResponseDTO>> search(@RequestParam String query, @RequestParam int page, @RequestParam int size) {
         Page<ProductResponseDTO> products = productService.search(query, page, size);
         return ResponseEntity.ok(products);
@@ -113,6 +120,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ProductResponseDTO> update(@Valid @PathVariable UUID id, @Valid @RequestBody ProductRequestDTO product) throws IOException {
         ProductResponseDTO updatedProduct = productService.update(id, product);
         return ResponseEntity.ok(updatedProduct);
@@ -127,6 +135,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PutMapping("/image/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<String> updateImage(@PathVariable UUID id,@RequestPart(required = false) MultipartFile file) throws IOException {
         String urlFile = productService.updateImage(id, file);
         return ResponseEntity.ok(urlFile);

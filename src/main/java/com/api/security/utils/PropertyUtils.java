@@ -8,7 +8,7 @@ import org.springframework.beans.BeanWrapperImpl;
 
 public class PropertyUtils {
 
-    // Método utilitário para obter os nomes das propriedades nulas
+    // Useful method to get the names of null properties
     public static String[] getNullPropertyNames(Object source) {
         final BeanWrapper src = new BeanWrapperImpl(source);
         java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();

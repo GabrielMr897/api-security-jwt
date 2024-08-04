@@ -1,4 +1,4 @@
-package com.api.security.Services;
+package com.api.security.services;
 
 import java.io.IOException;
 import java.util.List;
@@ -96,7 +96,6 @@ public class ProductService {
         product = productRepository.save(product);
         return ProductResponseDTO.fromEntity(product);
     }
-
 
     @Transactional
     public String updateImage(UUID id, MultipartFile file)
