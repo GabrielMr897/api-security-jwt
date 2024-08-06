@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.security.DTO.Auth.AuthenticationRequestDTO;
 import com.api.security.DTO.Auth.AuthenticationResponseDTO;
+import com.api.security.DTO.Auth.RefreshTokenRequestDTO;
 import com.api.security.DTO.User.UserRequestDTO;
 import com.api.security.DTO.User.UserResponseDTO;
 import com.api.security.services.auth.AuthenticationService;
@@ -54,8 +55,20 @@ public class AuthenticationController {
     })
     @PostMapping("/login")
     public ResponseEntity<Object> authenticateUser(@Valid @RequestBody AuthenticationRequestDTO authRequest) throws IOException, AuthException,UsernameNotFoundException {
-            String jwtToken = authenticationService.login(authRequest).getToken();
-            return ResponseEntity.ok(new AuthenticationResponseDTO(jwtToken));
+            AuthenticationResponseDTO jwtToken = authenticationService.login(authRequest);
+            return ResponseEntity.ok(jwtToken);
+    }
+
+    @Operation(summary = "Authenticate RefreshToken", responses = {
+        @ApiResponse(responseCode = "200", description = "Successfully Authenticated!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponseDTO.class))),
+        @ApiResponse(responseCode = "401", description = "Bad Credentials", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/refresh-token")
+    public ResponseEntity<Object> authenticateRefreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshToken) throws IOException, AuthException,UsernameNotFoundException {
+            AuthenticationResponseDTO jwtToken = authenticationService.obterRefreshToken(refreshToken);
+            return ResponseEntity.ok(jwtToken);
     }
     
 }

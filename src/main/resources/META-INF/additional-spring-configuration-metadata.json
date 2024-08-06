@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "api.security.expiration",
+    "type": "java.lang.String",
+    "description": "expiration token"
+  },
+  {
+    "name": "api.security.secretkey",
+    "type": "java.lang.String",
+    "description": "Secret Key JWT"
+  },
+  {
+    "name": "api.security.refresh-token.expiration",
+    "type": "java.lang.String",
+    "description": "expiration refresh token"
+  }
+]}

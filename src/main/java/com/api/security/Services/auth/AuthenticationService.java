@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.api.security.DTO.Auth.AuthenticationRequestDTO;
 import com.api.security.DTO.Auth.AuthenticationResponseDTO;
+import com.api.security.DTO.Auth.RefreshTokenRequestDTO;
 import com.api.security.DTO.Role.UserRoleDTO;
 import com.api.security.DTO.User.UserRequestDTO;
 import com.api.security.DTO.User.UserResponseDTO;
@@ -51,6 +54,12 @@ public class AuthenticationService implements UserDetailsService {
 
     @Autowired
     private final TokenService tokenService;
+
+    @Value("${api.security.expiration}")
+    private Integer expirationToken;
+
+    @Value("${api.security.refresh-token.expiration}")
+    private Integer expirationRefreshToken;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -98,9 +107,31 @@ public class AuthenticationService implements UserDetailsService {
                     new UsernamePasswordAuthenticationToken(
                         a.getLogin(),
                         a.getPassword()));
-            String jwtToken = tokenService.generateToken((User) auth.getPrincipal());
-            return new AuthenticationResponseDTO(jwtToken);
+            String jwtToken = tokenService.generateToken((User) auth.getPrincipal(),expirationToken);
+            String jwtRefreshToken = tokenService.generateToken((User) auth.getPrincipal(), expirationRefreshToken);
+            return AuthenticationResponseDTO
+                    .builder()
+                    .token(jwtToken)
+                    .refreshToken(jwtRefreshToken)
+                    .build();
 
     }
+
+    
+    public AuthenticationResponseDTO obterRefreshToken(RefreshTokenRequestDTO refreshToken) throws UsernameNotFoundException {
+        String login = tokenService.validateToken(refreshToken.getRefreshToken());
+        UserDetails userDetails = loadUserByUsername(login);
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return AuthenticationResponseDTO.builder()
+        .token(tokenService.generateToken((User) userDetails,expirationToken))
+        .refreshToken(tokenService.generateToken((User) userDetails,expirationRefreshToken))
+        .build();
+    }
+
+
+
 
 }

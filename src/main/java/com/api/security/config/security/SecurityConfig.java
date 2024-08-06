@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(            "/api/auth/login",
+                        "/api/auth/refresh-token",
                         "/api/auth/register",
                         "/v2/api-docs",
                         "/v3/api-docs",
