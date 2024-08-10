@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,6 +34,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 public class User extends AbstractEntity implements UserDetails {
 
     @Column(unique = true)

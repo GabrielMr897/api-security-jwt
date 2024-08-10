@@ -2,6 +2,9 @@ package com.api.security.models;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -18,6 +21,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "products")
 @Data
 @EqualsAndHashCode(callSuper=false)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 public class Product extends AbstractEntity {
     @Column(nullable = false, unique = true)
     private String code;

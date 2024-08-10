@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,8 +76,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<ProductResponseDTO>> findAll() {
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<List<ProductResponseDTO>> findAll() throws IOException {
         List<ProductResponseDTO> products = productService.findAll();
         return ResponseEntity.ok(products);
     }
@@ -91,7 +92,7 @@ public class ProductController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<ProductResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<ProductResponseDTO> getById(@PathVariable UUID id) throws IOException {
         ProductResponseDTO product = productService.getById(id);
         return ResponseEntity.ok(product);
     }
@@ -106,7 +107,7 @@ public class ProductController {
     })
     @GetMapping("/search")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<Page<ProductResponseDTO>> search(@RequestParam String query, @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<ProductResponseDTO>> search(@RequestParam String query, @RequestParam int page, @RequestParam int size) throws IOException {
         Page<ProductResponseDTO> products = productService.search(query, page, size);
         return ResponseEntity.ok(products);
     }
@@ -120,10 +121,25 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponseDTO> update(@Valid @PathVariable UUID id, @Valid @RequestBody ProductRequestDTO product) throws IOException {
         ProductResponseDTO updatedProduct = productService.update(id, product);
         return ResponseEntity.ok(updatedProduct);
+    }
+
+    @Operation(summary = "Delete Product", responses = {
+        @ApiResponse(responseCode = "200", description = "Successfully Delete!"),
+        @ApiResponse(responseCode = "401", ref = "badcredentials"),
+        @ApiResponse(responseCode = "403", ref = "forbidden"),
+        @ApiResponse(responseCode = "422", ref = "unprocessableEntity"),
+        @ApiResponse(responseCode = "404", description = "Product Not Found"),
+        @ApiResponse(responseCode = "500", ref = "internalServerError")
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Object> delete(@Valid @PathVariable UUID id) throws IOException {
+        productService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Update Image Product", responses = {
@@ -135,8 +151,8 @@ public class ProductController {
         @ApiResponse(responseCode = "500", ref = "internalServerError")
     })
     @PutMapping("/image/{id}")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<String> updateImage(@PathVariable UUID id,@RequestPart(required = false) MultipartFile file) throws IOException {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Object> updateImage(@Valid @PathVariable UUID id,@Valid @RequestPart MultipartFile file) throws IOException {
         String urlFile = productService.updateImage(id, file);
         return ResponseEntity.ok(urlFile);
     }

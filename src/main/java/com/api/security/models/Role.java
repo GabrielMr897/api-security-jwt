@@ -1,5 +1,8 @@
 package com.api.security.models;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.api.security.enums.EnumRoles;
 
 import jakarta.persistence.Column;
@@ -18,6 +21,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "roles")
 @EqualsAndHashCode(callSuper = false)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE roles SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 public class Role extends AbstractEntity {
     
     @Enumerated(EnumType.STRING)

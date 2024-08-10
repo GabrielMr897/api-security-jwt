@@ -1,5 +1,8 @@
 package com.api.security.models;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 
@@ -17,6 +20,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE token SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
 public class Token  extends AbstractEntity{
     @Column(name = "access_token")
     private String accessToken;

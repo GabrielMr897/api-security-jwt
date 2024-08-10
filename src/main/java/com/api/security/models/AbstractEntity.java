@@ -1,5 +1,6 @@
 package com.api.security.models;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -29,8 +30,11 @@ public abstract class AbstractEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,name = "created_date")
     @JsonIgnore
     private Date createdDate = new Date();
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
 }

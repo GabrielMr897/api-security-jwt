@@ -115,4 +115,13 @@ public class ProductService {
         product = productRepository.save(product);
         return urlFile;
     }
+
+    @Transactional
+    public void delete(UUID id) throws IOException  {
+        if (!productRepository.existsById(id)) {
+            throw new ProductNotFoundException("Product with ID " + id + " not found.");
+        }
+        productRepository.deleteById(id);
+    }
+
 }
