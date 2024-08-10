@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.security.DTO.Auth.AuthenticationRequestDTO;
 import com.api.security.DTO.Auth.AuthenticationResponseDTO;
-import com.api.security.DTO.Auth.RefreshTokenRequestDTO;
 import com.api.security.DTO.User.UserRequestDTO;
 import com.api.security.DTO.User.UserResponseDTO;
 import com.api.security.services.auth.AuthenticationService;
@@ -23,6 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.security.auth.message.AuthException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
@@ -59,16 +60,19 @@ public class AuthenticationController {
             return ResponseEntity.ok(jwtToken);
     }
 
-    @Operation(summary = "Authenticate RefreshToken", responses = {
+   @Operation(summary = "Authenticate RefreshToken", responses = {
         @ApiResponse(responseCode = "200", description = "Successfully Authenticated!", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponseDTO.class))),
         @ApiResponse(responseCode = "401", description = "Bad Credentials", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json")),
         @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = "application/json"))
     })
     @PostMapping("/refresh-token")
-    public ResponseEntity<Object> authenticateRefreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshToken) throws IOException, AuthException,UsernameNotFoundException {
-            AuthenticationResponseDTO jwtToken = authenticationService.obterRefreshToken(refreshToken);
-            return ResponseEntity.ok(jwtToken);
+    public ResponseEntity<AuthenticationResponseDTO> authenticateRefreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response) throws AuthException {
+        
+        AuthenticationResponseDTO jwtToken = authenticationService.refreshToken(request, response);
+        return ResponseEntity.ok(jwtToken);
     }
     
 }

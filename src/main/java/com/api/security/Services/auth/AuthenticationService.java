@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,11 +18,9 @@ import org.springframework.stereotype.Service;
 
 import com.api.security.DTO.Auth.AuthenticationRequestDTO;
 import com.api.security.DTO.Auth.AuthenticationResponseDTO;
-import com.api.security.DTO.Auth.RefreshTokenRequestDTO;
 import com.api.security.DTO.Role.UserRoleDTO;
 import com.api.security.DTO.User.UserRequestDTO;
 import com.api.security.DTO.User.UserResponseDTO;
-import com.api.security.config.security.TokenService;
 import com.api.security.exceptions.conflict.UserAlreadyExistsException;
 import com.api.security.exceptions.notFound.RoleNotFoundException;
 import com.api.security.models.Role;
@@ -32,6 +29,8 @@ import com.api.security.repositories.RolesRepository;
 import com.api.security.repositories.UserRepository;
 
 import jakarta.security.auth.message.AuthException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -53,13 +52,7 @@ public class AuthenticationService implements UserDetailsService {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private final TokenService tokenService;
-
-    @Value("${api.security.expiration}")
-    private Integer expirationToken;
-
-    @Value("${api.security.refresh-token.expiration}")
-    private Integer expirationRefreshToken;
+    private TokenService tokenService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -107,8 +100,10 @@ public class AuthenticationService implements UserDetailsService {
                     new UsernamePasswordAuthenticationToken(
                         a.getLogin(),
                         a.getPassword()));
-            String jwtToken = tokenService.generateToken((User) auth.getPrincipal(),expirationToken);
-            String jwtRefreshToken = tokenService.generateToken((User) auth.getPrincipal(), expirationRefreshToken);
+            String jwtToken = tokenService.generateAccessToken((User) auth.getPrincipal());
+            String jwtRefreshToken = tokenService.generateRefreshToken((User) auth.getPrincipal());
+            tokenService.revokeAllTokenByUser((User) auth.getPrincipal());
+            tokenService.saveUserToken(jwtToken, jwtRefreshToken, (User) auth.getPrincipal());
             return AuthenticationResponseDTO
                     .builder()
                     .token(jwtToken)
@@ -116,21 +111,39 @@ public class AuthenticationService implements UserDetailsService {
                     .build();
 
     }
-
     
-    public AuthenticationResponseDTO obterRefreshToken(RefreshTokenRequestDTO refreshToken) throws UsernameNotFoundException {
-        String login = tokenService.validateToken(refreshToken.getRefreshToken());
-        UserDetails userDetails = loadUserByUsername(login);
+    public AuthenticationResponseDTO refreshToken(
+        HttpServletRequest request,
+        HttpServletResponse response) throws AuthException {
+    String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return AuthenticationResponseDTO.builder()
-        .token(tokenService.generateToken((User) userDetails,expirationToken))
-        .refreshToken(tokenService.generateToken((User) userDetails,expirationRefreshToken))
-        .build();
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        throw new AuthException("Authorization header is missing or invalid.");
     }
 
+    String token = authHeader.substring(7);
+
+    String username = tokenService.validateToken(token);
+
+    UserDetails userDetails = userRepository.findByLogin(username);
+    User user = (User) userDetails;
+
+    if (tokenService.isValidRefreshToken(token, user)) {
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
+
+        tokenService.revokeAllTokenByUser(user);
+        tokenService.saveUserToken(accessToken, refreshToken, user);
+
+        return  AuthenticationResponseDTO
+                    .builder()
+                    .token(token)
+                    .refreshToken(refreshToken)
+                    .build();
+    } else {
+        throw new AuthException("Invalid refresh token.");
+    }
+}
 
 
 

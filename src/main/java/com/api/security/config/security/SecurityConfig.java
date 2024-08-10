@@ -2,6 +2,7 @@ package com.api.security.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -9,26 +10,32 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class SecurityConfig {
 
-   @Autowired
-   SecurityFilter securityFilter;
+
+   private final SecurityFilter securityFilter;
+
+   private CustomLogoutHandler logoutHandler;
+
+
 
   @Bean
   protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,6 +64,16 @@ public class SecurityConfig {
                         session -> session
                                 .sessionCreationPolicy(
                                         SessionCreationPolicy.STATELESS))
+                .logout(l->l
+                        .logoutUrl("/logout")
+                        .addLogoutHandler(logoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
+                        ))
+                .exceptionHandling(
+                        e->e.accessDeniedHandler(
+                                        (request, response, accessDeniedException)->response.setStatus(403)
+                                )
+                                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class).build();
   }
 
