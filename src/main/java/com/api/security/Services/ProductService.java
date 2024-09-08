@@ -106,7 +106,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found."));
         
         if (file != null && !file.isEmpty()) {
-            urlFile = "https://firebasestorage.googleapis.com/v0/b/api-security-23723.appspot.com/o/" + firebaseService.saveFile(file) + "?alt=media";
+            urlFile = firebaseService.saveFile(file);
         }
 
 

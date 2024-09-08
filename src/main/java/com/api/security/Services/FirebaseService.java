@@ -1,6 +1,8 @@
 package com.api.security.services;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -47,7 +49,9 @@ public class FirebaseService {
               .setContentType(file.getContentType())
               .build();
       storage.create(blobInfo, file.getBytes());
-      return imageName;
+      return "https://firebasestorage.googleapis.com/v0/b/api-security-23723.appspot.com/o/" 
+              + URLEncoder.encode(imageName, StandardCharsets.UTF_8.toString()) 
+              + "?alt=media";
   }
 
  
