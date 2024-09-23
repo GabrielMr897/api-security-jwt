@@ -38,7 +38,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             String login = tokenService.validateToken(token);
             UserDetails user = userRepository.findByLogin(login);
 
-            if (tokenService.isValid(token, user)) {
+            if (tokenService.isValid(token, user, false)) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
                 authentication.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)

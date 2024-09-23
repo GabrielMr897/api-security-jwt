@@ -3,6 +3,7 @@ package com.api.security.controller;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +34,7 @@ public class AuthenticationController {
     
 
     @Autowired
+    @Lazy
     private AuthenticationService authenticationService;
 
 

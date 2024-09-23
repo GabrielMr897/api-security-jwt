@@ -21,6 +21,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 
+
 @Service
 public class TokenService {
 
@@ -73,7 +74,7 @@ public class TokenService {
 
 
 
-    public boolean isValid(String token, UserDetails user) {
+    public boolean isValid(String token, UserDetails user, boolean isRefreshToken) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretKey);
             JWTVerifier verifier = JWT.require(algorithm)
@@ -85,33 +86,12 @@ public class TokenService {
             Date expiration = jwt.getExpiresAt();
 
             boolean validToken = tokenRepository
-                    .findByAccessToken(token)
-                    .map(t -> !t.isLoggedOut())
-                    .orElse(false);
+            .findByToken(token, isRefreshToken)
+            .map(t -> !t.isLoggedOut())
+            .orElse(false);
+
 
             return username.equals(user.getUsername()) && !isTokenExpired(expiration) && validToken;
-        } catch (JWTVerificationException e) {
-            return false;
-        }
-    }
-
-    public boolean isValidRefreshToken(String token, User user) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
-            JWTVerifier verifier = JWT.require(algorithm)
-                                      .withIssuer("api-security")
-                                      .build();
-            DecodedJWT jwt = verifier.verify(token);
-
-            String username = jwt.getSubject();
-            Date expiration = jwt.getExpiresAt();
-
-            boolean validRefreshToken = tokenRepository
-                    .findByRefreshToken(token)
-                    .map(t -> !t.isLoggedOut())
-                    .orElse(false);
-
-            return username.equals(user.getUsername()) && !isTokenExpired(expiration) && validRefreshToken;
         } catch (JWTVerificationException e) {
             return false;
         }
@@ -135,7 +115,7 @@ public class TokenService {
     }
 
 
-    public String validateToken(String token) {
+    public String validateToken(String token) throws JWTVerificationException {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretKey);
             return JWT.require(algorithm)
@@ -144,12 +124,12 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException e) {
-            return "";
+           throw new JWTVerificationException("Invalid token: " + e.getMessage());
         }
     }
 
 
     private Instant generateExpirationDate(Integer expiration) {
-        return LocalDateTime.now().plusHours(expiration).toInstant(ZoneOffset.of("-03:00"));
+        return LocalDateTime.now().plusHours(expiration).toInstant(ZoneOffset.UTC);
     }
 }

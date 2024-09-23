@@ -37,22 +37,20 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService implements UserDetailsService {
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     
     @Autowired
-    private UserRepository userRepository;
-    
+    private  PasswordEncoder passwordEncoder;
     @Autowired
-    private RolesRepository rolesRepository;
+    private  UserRepository userRepository;
+    @Autowired
+    private  RolesRepository rolesRepository;
 
+    @Autowired
     @Lazy
-    @Autowired
     private AuthenticationManager authenticationManager;
-
+    
     @Autowired
-    private TokenService tokenService;
+    private  TokenService tokenService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -94,22 +92,21 @@ public class AuthenticationService implements UserDetailsService {
 
     
     @Transactional
-    public AuthenticationResponseDTO login(AuthenticationRequestDTO a)
-            throws AuthException {
-            Authentication auth = this.authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                        a.getLogin(),
-                        a.getPassword()));
-            String jwtToken = tokenService.generateAccessToken((User) auth.getPrincipal());
-            String jwtRefreshToken = tokenService.generateRefreshToken((User) auth.getPrincipal());
-            tokenService.revokeAllTokenByUser((User) auth.getPrincipal());
-            tokenService.saveUserToken(jwtToken, jwtRefreshToken, (User) auth.getPrincipal());
-            return AuthenticationResponseDTO
-                    .builder()
-                    .token(jwtToken)
-                    .refreshToken(jwtRefreshToken)
-                    .build();
+    public AuthenticationResponseDTO login(AuthenticationRequestDTO a) throws AuthException {
+        Authentication auth = this.authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(a.getLogin(), a.getPassword()));
+        
+        User user = (User) auth.getPrincipal();
+        String jwtToken = tokenService.generateAccessToken(user);
+        String jwtRefreshToken = tokenService.generateRefreshToken(user);
 
+        tokenService.revokeAllTokenByUser(user);
+        tokenService.saveUserToken(jwtToken, jwtRefreshToken, user);
+
+        return AuthenticationResponseDTO.builder()
+                .token(jwtToken)
+                .refreshToken(jwtRefreshToken)
+                .build();
     }
     
     public AuthenticationResponseDTO refreshToken(
@@ -128,7 +125,7 @@ public class AuthenticationService implements UserDetailsService {
     UserDetails userDetails = userRepository.findByLogin(username);
     User user = (User) userDetails;
 
-    if (tokenService.isValidRefreshToken(token, user)) {
+    if (tokenService.isValid(token, user, true)) {
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
 
@@ -137,7 +134,7 @@ public class AuthenticationService implements UserDetailsService {
 
         return  AuthenticationResponseDTO
                     .builder()
-                    .token(token)
+                    .token(accessToken)
                     .refreshToken(refreshToken)
                     .build();
     } else {
